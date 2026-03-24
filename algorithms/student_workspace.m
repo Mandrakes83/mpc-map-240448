@@ -4,7 +4,7 @@ function [public_vars] = student_workspace(read_only_vars,public_vars)
 %%
 persistent tmp_lidar_data;
 %Optional step for data gathering... Probably will be commented out later
-data_acq_periods = 100;
+data_acq_periods = 500;
 if(read_only_vars.counter <= data_acq_periods)
     tmp_lidar_data(read_only_vars.counter,:) = read_only_vars.lidar_distances;
     
@@ -17,12 +17,20 @@ if(read_only_vars.counter <= data_acq_periods)
          for i = 1:8
             histogram(tmp_lidar_data(:,i),'FaceAlpha',0.5);
          end
+         legend("Kanal 1", "Kanal 2","Kanal 3","Kanal 4","Kanal 5","Kanal 6","Kanal 7","Kanal 8");
+         ylabel("Počet [-]")
+         xlabel("Vzdialenosť [m]")
          hold off
          subplot(2,1,2)
          hold on
+         middle_of_gnss = mean(read_only_vars.gnss_history,"all");
+
          for i = 1:2
-            histogram(read_only_vars.gnss_history(:,i),-1:0.1:3,'FaceAlpha',0.5);
+            histogram(read_only_vars.gnss_history(:,i),(middle_of_gnss-1.5:0.1:middle_of_gnss+1.5),'FaceAlpha',0.5);
          end
+         legend("Kanal 1", "Kanal 2");
+         ylabel("Počet [-]")
+         xlabel("Vzdialenosť [m]")
          hold off
      end
 
