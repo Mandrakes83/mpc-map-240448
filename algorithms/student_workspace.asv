@@ -39,12 +39,10 @@ if(read_only_vars.counter <= data_acq_periods)
 
          figure(43)
          hold on
-         plot(-2:0.1:2,lidar_pdf,'-x')
-         plot(-2:0.1:2,gnss_pdf,'-+')
+         scatter(-2:0.1:2,lidar_pdf)
+         scatter(-2:0.1:2,gnss_pdf)
          hold off
-         legend("Lidar","Gnss")
-         xlabel("Vzdialenosť / Poloha [m]")
-         ylabel("Pravdepodobnosť [-]")
+         legend("Lidar","")
 
      end
 
