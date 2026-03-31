@@ -1,0 +1,9 @@
+finish location x,y
+arena definition x1,y1,x2,y2
+wall definition 1 x1,y1,x2,y2
+.
+.
+.
+wall definition n
+inf --- delimiter
+definition of GNSS-of zone x1,y1,x2,y2,x3,y3,x4,y4

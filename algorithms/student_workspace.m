@@ -72,6 +72,28 @@ public_vars.estimated_pose = estimate_pose(public_vars); % (x,y,theta)
 % 12. Path planning
 public_vars.path = plan_path(read_only_vars, public_vars);
 
+path_select = 1;
+pocet_bodov = 20;
+
+if(path_select == 0)
+    public_vars.path = [[5,5];[10,10];[15,15];[19,19]];
+elseif (path_select == 1)
+    body = [1 1; 12 5; 19 19];
+    data_pre_kruh = triangulation([1 2 3], body(:,1), body(:,2));
+    [stred,polomer] = circumcenter(data_pre_kruh);
+    uhol = linspace(1.51*pi,1.99*pi,pocet_bodov);
+    
+    cesta_x = stred(1) + polomer*cos(uhol);
+    cesta_y = stred(2) + polomer*sin(uhol);
+
+    public_vars.path = [cesta_x',cesta_y'];
+else
+
+    public_vars.path = [];
+end
+
+
+
 % 13. Plan next motion command
 public_vars = plan_motion(read_only_vars, public_vars);
 
