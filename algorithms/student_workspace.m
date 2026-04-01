@@ -74,7 +74,7 @@ public_vars.estimated_pose = read_only_vars.mocap_pose; % (x,y,theta)
 public_vars.path = plan_path(read_only_vars, public_vars);
 
 path_select = 2;
-pocet_bodov = 10;
+pocet_bodov = 50;
 
 if(path_select == 0)
     public_vars.path = [[5,5];[10,10];[13,13];[17.5,13];[19,19]];
