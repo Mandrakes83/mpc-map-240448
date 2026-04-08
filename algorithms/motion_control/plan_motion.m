@@ -10,7 +10,7 @@ target = get_target(public_vars.estimated_pose, public_vars.path);
 
 %Spocitat polohu P
 theta = public_vars.estimated_pose(3);
-epsilon = 0.3;
+epsilon = 0.2; %delka tycky
 xp = public_vars.estimated_pose(1) + epsilon*cos(theta);
 yp = public_vars.estimated_pose(2) + epsilon*sin(theta);
 P_pose = [xp,yp];

@@ -109,7 +109,4 @@ end
 % 13. Plan next motion command
 public_vars = plan_motion(read_only_vars, public_vars);
 
-
-
 end
-
