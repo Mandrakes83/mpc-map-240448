@@ -3,7 +3,7 @@ function [target] = get_target(estimated_pose, path)
 
 persistent waypoint_counter;
 
-target_acquired_distance = 0.4;
+target_acquired_distance = 0.2;
 
 if(isempty(waypoint_counter))
     waypoint_counter = 1;

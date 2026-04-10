@@ -10,7 +10,7 @@ target = get_target(public_vars.estimated_pose, public_vars.path);
 
 %Spocitat polohu P
 theta = public_vars.estimated_pose(3);
-epsilon = 0.2; %delka tycky
+epsilon = 0.05; %delka tycky
 xp = public_vars.estimated_pose(1) + epsilon*cos(theta);
 yp = public_vars.estimated_pose(2) + epsilon*sin(theta);
 P_pose = [xp,yp];
@@ -19,8 +19,6 @@ kappa = norm(target - P_pose);
 
 dxp = kappa*(target(1) - xp);
 dyp = kappa*(target(2) - yp);
-
-dP_pose = [dxp,dyp];
 
 v = dxp*cos(theta) + dyp*sin(theta);
 w = (-dxp*sin(theta) + dyp*cos(theta))/(epsilon);

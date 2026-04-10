@@ -18,5 +18,17 @@ weights = weight_particles(measurements, read_only_vars.lidar_distances);
 % III. Resampling
 particles = resample_particles(particles, weights);
 
+% IV. Add Random particles
+% Discard random ones and create new ones
+
+part_to_be_replaced = 0.25;
+particle_count = size(public_vars.particles,1);
+replace_count = floor(part_to_be_replaced*particle_count);
+to_be_replaced_indexes = randi([1 particle_count],1,replace_count);
+
+helper = init_particle_filter(read_only_vars,public_vars,replace_count);
+
+particles(to_be_replaced_indexes,:) = helper.particles;
+
 end
 

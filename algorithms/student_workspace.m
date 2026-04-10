@@ -73,8 +73,8 @@ public_vars.estimated_pose = read_only_vars.mocap_pose; % (x,y,theta)
 % 12. Path planning
 public_vars.path = plan_path(read_only_vars, public_vars);
 
-path_select = 0;
-pocet_bodov = 50;
+path_select = 3;
+pocet_bodov = 100;
 
 if(path_select == 0)
     public_vars.path = [[5,5];[10,10];[13,13];[17.5,13];[19,19]];
@@ -88,7 +88,7 @@ elseif (path_select == 1)
     cesta_y = stred(2) + polomer*sin(uhol);
 
     public_vars.path = [cesta_x',cesta_y'];
-else
+elseif(path_select == 2)
    offset = 18.5;
    body = linspace(1,19,pocet_bodov);
    path = sin(body);
@@ -102,6 +102,8 @@ else
                        1, 12.5;
                        1, 18.5;
                        body', (path + offset)'];
+else
+    public_vars.path = [linspace(1,1,100);linspace(1,6,100)]';
 end
 
 
