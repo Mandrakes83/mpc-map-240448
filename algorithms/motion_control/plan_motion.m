@@ -59,17 +59,25 @@ else
 end
 
 
-wheel_speed_slew_rate = 0.1;
+wheel_speed_slew_rate = 0.05;
 
 v_r = (2*v+w*L)/(2*delta_t);
 v_l = (2*v-w*L)/(2*delta_t);
 
 if(abs(v_r) - abs(v_r_memory) > wheel_speed_slew_rate)
-    v_r = v_r + wheel_speed_slew_rate;
+    if(v_r > v_r_memory)
+        v_r = v_r + wheel_speed_slew_rate;
+    else
+        v_r = v_r - wheel_speed_slew_rate;
+    end
 end
 
-if(abs(v_l) - abs(v_r_memory) > wheel_speed_slew_rate)
-    v_l = v_l + wheel_speed_slew_rate;
+if(abs(v_l) - abs(v_l_memory) > wheel_speed_slew_rate)
+    if(v_l > v_l_memory)
+        v_l = v_l + wheel_speed_slew_rate;
+    else
+        v_l = v_l - wheel_speed_slew_rate;
+    end
 end
 
 public_vars.motion_vector = [v_r,v_l] %right,left

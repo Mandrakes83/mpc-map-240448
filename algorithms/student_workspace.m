@@ -46,7 +46,7 @@ elseif(read_only_vars.counter == Init_cycle_count-1)
 
     public_vars.sigma(1,1) = std(read_only_vars.gnss_history(:,1))^2;
     public_vars.sigma(2,2) = std(read_only_vars.gnss_history(:,2))^2;
-    public_vars.sigma(3,3) = (pi/2)^2;
+    public_vars.sigma(3,3) = (pi)^2;
 
     
     public_vars.kf.Q = diag([
