@@ -27,9 +27,12 @@ end
 % 12. Path planning
 public_vars.path = plan_path(read_only_vars, public_vars);
 
-public_vars.path(1:10,:) = [linspace(2.5,10,10);linspace(2,8,10)]';
-public_vars.path(11:20,:) = [linspace(10,16,10);linspace(8,6,10)]';
-public_vars.path(21:30,:) = [linspace(16,16,10);linspace(6,2,10)]';
+% public_vars.path(1:25,:) = [linspace(2.5,10,25);linspace(2,8,25)]';
+% public_vars.path(26:50,:) = [linspace(10,16,25);linspace(8,6,25)]';
+% public_vars.path(51:75,:) = [linspace(16,16,25);linspace(6,2,25)]';
+
+public_vars.path [2,2;
+                  ]
 
 
 
@@ -46,13 +49,13 @@ elseif(read_only_vars.counter == Init_cycle_count-1)
 
     public_vars.sigma(1,1) = std(read_only_vars.gnss_history(:,1))^2;
     public_vars.sigma(2,2) = std(read_only_vars.gnss_history(:,2))^2;
-    public_vars.sigma(3,3) = (pi/2)^2;
+    public_vars.sigma(3,3) = (pi)^2;
 
     
     public_vars.kf.Q = diag([
             0.005^2;                 % x process noise
-            0.01^2;                 % y process noise
-            0.025^2            % theta process noise
+            0.02^2;                 % y process noise
+            0.05^2            % theta process noise
         ]);
 
     public_vars.kf.R = cov(read_only_vars.gnss_history);

@@ -7,7 +7,6 @@ v_l = public_vars.motion_vector(2);
 v = (v_r+v_l)/2;
 w = (v_r-v_l)/read_only_vars.agent_drive.interwheel_dist;
 
-
 mu = public_vars.mu;
 sigma = public_vars.sigma;
 
