@@ -6,16 +6,16 @@ Init_cycle_count = 15;
 % 8. Perform initialization procedure
 if (read_only_vars.counter == 1)
           
-    % public_vars = init_particle_filter(read_only_vars, public_vars);
+    public_vars = init_particle_filter(read_only_vars, public_vars);
     public_vars = init_kalman_filter(read_only_vars, public_vars);
 
 end
 
+if (read_only_vars.counter > Init_cycle_count)
 % 9. Update particle filter
-% public_vars.particles = update_particle_filter(read_only_vars, public_vars);
+public_vars.particles = update_particle_filter(read_only_vars, public_vars);
 
 % 10. Update Kalman filter
-if (read_only_vars.counter > Init_cycle_count)
     [public_vars.mu, public_vars.sigma] = update_kalman_filter(read_only_vars, public_vars);
 
 % 11. Estimate current robot position
