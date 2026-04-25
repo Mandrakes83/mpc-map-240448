@@ -1,73 +1,224 @@
-function [path] = astar(read_only_vars, public_vars)
-%ASTAR Summary of this function goes here
-
-finish = Map_Cell(read_only_vars.discrete_map.goal(1),read_only_vars.discrete_map.goal(2),true);
+function path = astar(read_only_vars, public_vars)
 
 map_step = read_only_vars.map.discretization_step;
 
-rounded_x = round(public_vars.estimated_pose(1)/map_step)*map_step;
-rounded_y = round(public_vars.estimated_pose(2)/map_step)*map_step;
+occMap = read_only_vars.discrete_map.map';
+distToObstacle = obstacleDistanceBFS(occMap);
 
-start = Map_Cell(rounded_x,rounded_y,false);
+mapW   = read_only_vars.discrete_map.dims(1);
+mapH   = read_only_vars.discrete_map.dims(2);
 
-offsets = [
-   -1  0;
-    0 -1;
-    0  1;
-    1  0;
-   -1  1;
-   -1 -1;
-    1 -1;
-    1  1
+% Start (grid indices)
+start_x = round(public_vars.estimated_pose(1) / map_step);
+start_y = round(public_vars.estimated_pose(2) / map_step);
+
+% Goal (grid indices)
+goal_x = read_only_vars.discrete_map.goal(1);
+goal_y = read_only_vars.discrete_map.goal(2);
+
+% --- 4-way Dijkstra heuristic (obstacle-aware) ---
+dijkstraMap = computeDijkstra4(occMap, mapW, mapH, goal_x, goal_y);
+
+start = Map_Cell(start_x, start_y);
+goal  = Map_Cell(goal_x, goal_y);
+
+start.gCost = 0;
+start.hCost = dijkstraMap(start_x, start_y);
+start.fCost = start.gCost + start.hCost;
+
+% 8-connected neighbors: [dx dy cost]
+neighbors = [
+    -1  0  1;
+     1  0  1;
+     0 -1  1;
+     0  1  1;
+    -1 -1  sqrt(2);
+    -1  1  sqrt(2);
+     1 -1  sqrt(2);
+     1  1  sqrt(2)
 ];
 
-Prio_Queue = Map_Cell.empty;
-Prio_Queue(end+1) = start;
+openSet = start;
+allCells = containers.Map("KeyType","char","ValueType","any");
+allCells(key(start)) = start;
 
-New_map(read_only_vars.discrete_map.dims(1),read_only_vars.discrete_map.dims(2)) = Map_Cell;
+while ~isempty(openSet)
 
+    % Pick node with minimum fCost
+    [~, idx] = min([openSet.fCost]);
+    current = openSet(idx);
+    openSet(idx) = [];
 
-while(~isempty(Prio_Queue))
-
-    selected_cell = Prio_Queue(1);
-
-    Prio_Queue(1) = [];
-    if(selected_cell == finish)
+    if current == goal
+        goal = current;
         break;
     end
 
-    for i = 1:4
-    explored_cell = Map_Cell(selected_cell.x+offsets(i,1),selected_cell.y+offsets(i,2),false);
+    current.Closed = true;
 
-    if(explored_cell.x <= read_only_vars.map.limits(1) || explored_cell.x >= read_only_vars.map.limits(3))
-        continue;
-    end
-    if(explored_cell.y <= read_only_vars.map.limits(2) || explored_cell.y >= read_only_vars.map.limits(4))
-        continue;
-    end
+    for i = 1:size(neighbors,1)
 
-    idx = find(Prio_Queue == explored_cell, 1); 
+        dx = neighbors(i,1);
+        dy = neighbors(i,2);
+        moveCost = neighbors(i,3);
 
-    if(isempty(idx))
-        explored_cell.HeuresticCost = djikstra_cost(selected_cell);
-        explored_cell.Visited = true;
-        Prio_Queue(end+1) = explored_cell;
-    else
-        % duplicity found !LET IT DIE!
-    end
-    end
-    key = [Prio_Queue.HeuresticCost];
-    [~, idx] = sort(key);
-    Prio_Queue = Prio_Queue(idx);
+        nx = current.x + dx;
+        ny = current.y + dy;
 
+        % Bounds check
+        if nx < 1 || ny < 1 || nx > mapW || ny > mapH
+            continue;
+        end
+
+        % Occupancy check
+        if occMap(nx, ny) == 1
+            continue;
+        end
+
+        % Prevent diagonal corner-cutting
+        if dx ~= 0 && dy ~= 0
+            if occMap(current.x + dx, current.y) == 1 || ...
+               occMap(current.x, current.y + dy) == 1
+                continue;
+            end
+        end
+
+        k = sprintf('%d_%d', nx, ny);
+        if isKey(allCells, k)
+            neighbor = allCells(k);
+        else
+            neighbor = Map_Cell(nx, ny);
+            allCells(k) = neighbor;
+        end
+
+        if neighbor.Closed
+            continue;
+        end
+
+        
+        desired_clearance = 3;    % safety radius (cells)
+        wall_weight = 2.5;
+        
+        penalty = wall_weight * max(0, desired_clearance - distToObstacle(nx,ny));
+        tentative_g = current.gCost + moveCost + penalty;
+
+
+        if tentative_g < neighbor.gCost
+            neighbor.Parent = current;
+            neighbor.gCost  = tentative_g;
+            neighbor.hCost  = dijkstraMap(nx, ny);
+            neighbor.fCost  = neighbor.gCost + neighbor.hCost;
+
+            if ~any(openSet == neighbor)
+                openSet(end+1) = neighbor;
+            end
+        end
+    end
 end
 
+% --- Reconstruct path (world coordinates) ---
 path = [];
+node = goal;
+
+while ~isempty(node)
+    path(end+1,:) = [node.x * map_step, node.y * map_step];
+    node = node.Parent;
+end
+
+path = flipud(path);
 
 end
 
-function [cost] = djikstra_cost(selected)
-    movement_cost = 1; %Can be adjusted later on... this is for 4-way search
+function D = computeDijkstra4(occMap, W, H, gx, gy)
 
-    cost = selected.HeuresticCost + movement_cost;
+D = inf(W, H);
+
+% Goal must be free
+if occMap(gx, gy) == 1
+    return;
+end
+
+D(gx, gy) = 0;
+queue = [gx gy];
+
+offsets = [
+    -1  0;
+     1  0;
+     0 -1;
+     0  1
+];
+
+while ~isempty(queue)
+    current = queue(1,:);
+    queue(1,:) = [];
+
+    for i = 1:4
+        nx = current(1) + offsets(i,1);
+        ny = current(2) + offsets(i,2);
+
+        if nx < 1 || ny < 1 || nx > W || ny > H
+            continue;
+        end
+
+        if occMap(nx, ny) == 1
+            continue;
+        end
+
+        newCost = D(current(1), current(2)) + 1;
+        if newCost < D(nx, ny)
+            D(nx, ny) = newCost;
+            queue(end+1,:) = [nx ny];
+        end
+    end
+end
+
+end
+
+function k = key(cell)
+    k = sprintf('%d_%d', cell.x, cell.y);
+end
+
+function distToObstacle = obstacleDistanceBFS(rawMap)
+% rawMap: 0 = free, 1 = occupied
+% Pure MATLAB, NO TOOLBOX
+
+[W, H] = size(rawMap);
+distToObstacle = inf(W, H);
+
+queue = zeros(W*H, 2);
+qs = 1; qe = 0;
+
+% Initialize from obstacles
+for x = 1:W
+    for y = 1:H
+        if rawMap(x,y) == 1
+            distToObstacle(x,y) = 0;
+            qe = qe + 1;
+            queue(qe,:) = [x y];
+        end
+    end
+end
+
+offsets = [-1 0; 1 0; 0 -1; 0 1];
+
+while qs <= qe
+    cx = queue(qs,1);
+    cy = queue(qs,2);
+    qs = qs + 1;
+
+    for i = 1:4
+        nx = cx + offsets(i,1);
+        ny = cy + offsets(i,2);
+
+        if nx<1 || ny<1 || nx>W || ny>H
+            continue;
+        end
+
+        if distToObstacle(nx,ny) > distToObstacle(cx,cy) + 1
+            distToObstacle(nx,ny) = distToObstacle(cx,cy) + 1;
+            qe = qe + 1;
+            queue(qe,:) = [nx ny];
+        end
+    end
+end
 end

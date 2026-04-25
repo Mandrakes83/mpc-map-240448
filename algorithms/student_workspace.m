@@ -21,16 +21,9 @@ public_vars.particles = update_particle_filter(read_only_vars, public_vars);
 % 11. Estimate current robot position
 public_vars.estimated_pose = estimate_pose(public_vars)'; % (x,y,theta)
 
-end
-% public_vars.estimated_pose = read_only_vars.mocap_pose; % (x,y,theta)
-
 % 12. Path planning
 public_vars.path = plan_path(read_only_vars, public_vars);
-
-public_vars.path(1:10,:) = [linspace(2.5,10,10);linspace(2,8,10)]';
-public_vars.path(11:20,:) = [linspace(10,16,10);linspace(8,6,10)]';
-public_vars.path(21:30,:) = [linspace(16,16,10);linspace(6,2,10)]';
-
+end
 
 
 % 13. Plan next motion command

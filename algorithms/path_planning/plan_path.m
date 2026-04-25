@@ -3,11 +3,10 @@ function [path] = plan_path(read_only_vars, public_vars)
 
 
 
-
-if(isempty(public_vars.estimated_pose))
-    planning_required = 0;
-else
+if(isempty(public_vars.path))
     planning_required = 1;
+else 
+    planning_required = 0;
 end
 
 if planning_required
