@@ -4,8 +4,8 @@ function [new_path] = smooth_path(old_path)
 % new_path: Nx2 smoothed path
 
 % Parameters (tune these)
-alpha = 0.75;      % fidelity to original path
-beta  = 0.15;      % smoothness weight
+alpha = 0.6;      % fidelity to original path
+beta  = 0.4;      % smoothness weight
 tol   = 1e-5;     % convergence tolerance
 max_iter = 1000;  % safety bound
 

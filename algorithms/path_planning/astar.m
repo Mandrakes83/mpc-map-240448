@@ -9,8 +9,13 @@ mapW   = read_only_vars.discrete_map.dims(1);
 mapH   = read_only_vars.discrete_map.dims(2);
 
 % Start (grid indices)
-start_x = round(public_vars.estimated_pose(1) / map_step);
-start_y = round(public_vars.estimated_pose(2) / map_step);
+
+start_x = floor(public_vars.estimated_pose(1) / map_step) + 1;
+start_y = floor(public_vars.estimated_pose(2) / map_step) + 1;
+
+% Clamp to map bounds
+start_x = max(1, min(start_x, mapW));
+start_y = max(1, min(start_y, mapH));
 
 % Goal (grid indices)
 goal_x = read_only_vars.discrete_map.goal(1);
@@ -97,9 +102,15 @@ while ~isempty(openSet)
 
         
         desired_clearance = 3;    % safety radius (cells)
-        wall_weight = 2.5;
+        wall_weight = 10;
         
-        penalty = wall_weight * max(0, desired_clearance - distToObstacle(nx,ny));
+        
+        if distToObstacle(nx,ny) <= desired_clearance
+            penalty = wall_weight * (desired_clearance + 1 - distToObstacle(nx,ny));
+        else
+            penalty = 0;
+        end
+
         tentative_g = current.gCost + moveCost + penalty;
 
 
@@ -121,7 +132,9 @@ path = [];
 node = goal;
 
 while ~isempty(node)
-    path(end+1,:) = [node.x * map_step, node.y * map_step];
+    path(end+1,:) = [ ...
+        (node.x - 0.5) * map_step, ...
+        (node.y - 0.5) * map_step ];
     node = node.Parent;
 end
 

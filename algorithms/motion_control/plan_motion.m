@@ -20,7 +20,7 @@ L = read_only_vars.agent_drive.interwheel_dist;
 
 %Spocitat polohu P
 theta = public_vars.estimated_pose(3);
-epsilon = 0.05; %delka tycky
+epsilon = 0.15; %delka tycky
 xp = public_vars.estimated_pose(1) + epsilon*cos(theta);
 yp = public_vars.estimated_pose(2) + epsilon*sin(theta);
 P_pose = [xp,yp];
@@ -37,8 +37,8 @@ w = (-dxp*sin(theta) + dyp*cos(theta))/(L);
 
 % Limits
 v_max = 0.75          * delta_t; 
-v_min = 0.1           * delta_t;
-w_max = pi/2          * delta_t;
+v_min = 0.25          * delta_t;
+w_max = pi/4          * delta_t;
 w_deadzone = pi/32    * delta_t;
 
 
