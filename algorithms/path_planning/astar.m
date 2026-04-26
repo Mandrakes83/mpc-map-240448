@@ -104,7 +104,6 @@ while ~isempty(openSet)
         desired_clearance = 3;    % safety radius (cells)
         wall_weight = 10;
         
-        
         if distToObstacle(nx,ny) <= desired_clearance
             penalty = wall_weight * (desired_clearance + 1 - distToObstacle(nx,ny));
         else
