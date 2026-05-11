@@ -1,3 +1,3 @@
-start_position = [2, 2, pi/2]; % (x, y, theta)
+start_position = [5, 8, pi/2]; % (x, y, theta)
 
-map_name = 'maps/indoor_3.txt';
+map_name = 'maps/outdoor_2.txt';

@@ -29,12 +29,12 @@ switch Localization_state
         if isempty(Init_stop)
             Init_stop = read_only_vars.counter + Init_cycle_count;
         end
-
+        public_vars.motion_vector = [0,0];
         % Collect data during init cycles
         if read_only_vars.counter == Init_stop - 1
             public_vars = init_kalman_filter(read_only_vars, public_vars);
             % GNSS-based initialization
-            public_vars.estimated_pose(1:2) = mean(read_only_vars.gnss_history);
+            public_vars.estimated_pose(1:2) = mean(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,:));
             public_vars.estimated_pose(3) = pi;
 
             public_vars.mu = public_vars.estimated_pose;
@@ -96,6 +96,18 @@ switch Localization_state
     % =========================
     case PF
     % =========================
+    persistent counter;
+    if ~any(isnan(read_only_vars.gnss_position))
+            Localization_state = KALMAN_BOOT;
+            public_vars.pf_enabled = 0;
+            counter = [];
+            return;
+    end
+
+   
+    if(isempty(counter))
+        counter = 0;
+    end
         % Update particle filter
         if public_vars.pf_enabled
             public_vars.particles = ...
@@ -109,7 +121,12 @@ switch Localization_state
         public_vars.path = plan_path(read_only_vars, public_vars);
 
         % Motion planning
-        public_vars = plan_motion(read_only_vars, public_vars);
+        if(counter < 10)
+            public_vars.motion_vector = [0.2,0.2];
+            counter = counter +1;
+        else
+            public_vars = plan_motion(read_only_vars, public_vars);
+        end
 
 end
 end
