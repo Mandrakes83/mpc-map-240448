@@ -63,10 +63,24 @@ switch Localization_state
     case PF_BOOT
     % =========================
 
-        
-        public_vars = init_particle_filter(read_only_vars, public_vars);
-        public_vars.pf_enabled = 1;
-        Localization_state = PF;            
+        if isempty(Init_stop)
+            Init_stop = read_only_vars.counter + Init_cycle_count;
+            public_vars = init_particle_filter(read_only_vars, public_vars);
+            public_vars.pf_enabled = 1;
+        end
+        % 
+        % public_vars.motion_vector = [0.2,0.2];
+        % 
+        % if(read_only_vars.counter > Init_stop - (Init_cycle_count/2) && read_only_vars.counter < Init_stop)
+        % 
+        % public_vars.motion_vector = [-0.2,0.2];
+                   
+        if read_only_vars.counter > Init_stop
+            Localization_state = PF;
+            Init_stop = []; %enable reinit later on;
+        end
+        public_vars.particles = update_particle_filter(read_only_vars, public_vars);
+
 
     % =========================
     case KALMAN

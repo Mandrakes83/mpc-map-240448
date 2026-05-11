@@ -4,7 +4,7 @@ if(public_vars.kf_enabled)
     estimated_pose = public_vars.mu';
 
 elseif (public_vars.pf_enabled)
-    estimated_pose = median(public_vars.particles);
+    estimated_pose = mean(public_vars.particles);
 
 end
 
