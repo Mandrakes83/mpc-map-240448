@@ -40,8 +40,8 @@ switch Localization_state
             public_vars.mu = public_vars.estimated_pose;
 
             public_vars.sigma = zeros(3);
-            public_vars.sigma(1,1) = std(read_only_vars.gnss_history(:,1))^2;
-            public_vars.sigma(2,2) = std(read_only_vars.gnss_history(:,2))^2;
+            public_vars.sigma(1,1) = std(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,1))^2;
+            public_vars.sigma(2,2) = std(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,2))^2;
             public_vars.sigma(3,3) = pi^2;
 
             public_vars.kf.Q = diag([
@@ -50,9 +50,9 @@ switch Localization_state
                 0.025^2
             ]);
 
-            public_vars.kf.R = cov(read_only_vars.gnss_history);
+            public_vars.kf.R = cov(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,:));
 
-        elseif read_only_vars.counter > Init_stop
+        elseif read_only_vars.counter >= Init_stop
             Localization_state = KALMAN;
             public_vars.kf_enabled = 1;
             Init_stop = []; %enable reinit later on
