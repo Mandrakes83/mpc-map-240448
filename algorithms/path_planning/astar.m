@@ -138,6 +138,7 @@ while ~isempty(node)
 end
 
 path = flipud(path);
+path(1:2,:) = [];
 
 end
 

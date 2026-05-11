@@ -9,5 +9,7 @@ public_vars.kf.Q = [];
 public_vars.mu = [];
 public_vars.sigma = [];
 
+public_vars.kf_enabled = 1;
+
 end
 
