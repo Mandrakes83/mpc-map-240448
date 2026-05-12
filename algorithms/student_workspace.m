@@ -25,6 +25,10 @@ switch Localization_state
     % =========================
     case KALMAN_BOOT
     % =========================
+    persistent kalman_transfer;
+    if(isempty(kalman_transfer))
+        kalman_transfer = 0;
+    end
 
         if isempty(Init_stop)
             Init_stop = read_only_vars.counter + Init_cycle_count;
@@ -35,14 +39,25 @@ switch Localization_state
             public_vars = init_kalman_filter(read_only_vars, public_vars);
             % GNSS-based initialization
             public_vars.estimated_pose(1:2) = mean(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,:));
-            public_vars.estimated_pose(3) = pi;
-
+            
+            if(kalman_transfer == 0)
+                public_vars.estimated_pose(3) = pi;
+            else
+                public_vars.estimated_pose(3) = public_vars.estimated_pose(3);
+            end
+            kalman_transfer = 0;
             public_vars.mu = public_vars.estimated_pose;
 
             public_vars.sigma = zeros(3);
             public_vars.sigma(1,1) = std(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,1))^2;
             public_vars.sigma(2,2) = std(read_only_vars.gnss_history(Init_stop - Init_cycle_count:end,2))^2;
-            public_vars.sigma(3,3) = pi^2;
+
+            if(kalman_transfer == 0)
+                public_vars.sigma(3,3) = pi^2;
+            else
+                public_vars.sigma(3,3) = ((pi/6)^2)*3;
+            end
+            
 
             public_vars.kf.Q = diag([
                 0.005^2;
@@ -96,37 +111,55 @@ switch Localization_state
     % =========================
     case PF
     % =========================
-    persistent counter;
+    persistent init_counter;
+    if(isempty(init_counter))
+        init_counter = 0;
+    end
+
+    persistent quit_counter;
+    if(isempty(quit_counter))
+        quit_counter = 0;
+    end    
+
     if ~any(isnan(read_only_vars.gnss_position))
-            Localization_state = KALMAN_BOOT;
-            public_vars.pf_enabled = 0;
-            counter = [];
-            return;
+        quit_counter = quit_counter + 1;
+        
+    else
+        quit_counter = 0;
     end
 
-   
-    if(isempty(counter))
-        counter = 0;
+    if(quit_counter > 30)
+        Localization_state = KALMAN_BOOT;
+        public_vars.pf_enabled = 0;
+        init_counter = [];
+        quit_counter = [];
+        kalman_transfer = 1;
+        return;
     end
-        % Update particle filter
-        if public_vars.pf_enabled
-            public_vars.particles = ...
-                update_particle_filter(read_only_vars, public_vars);
-        end
+ 
 
+    % Update particle filter
+    if public_vars.pf_enabled
+        [public_vars.particles,pf_weights] = ...
+            update_particle_filter(read_only_vars, public_vars);
+    end
+
+    
+    if(init_counter < 30)
+        public_vars.motion_vector = [-0.2,0.2];
+        init_counter = init_counter +1;
+    elseif(init_counter < 60)
+        public_vars.motion_vector = [0.2,0.2];
+        init_counter = init_counter +1;
+    else
         % Estimate pose
-        public_vars.estimated_pose = estimate_pose(public_vars);
-
+        public_vars.estimated_pose = estimate_pose(public_vars,pf_weights);
         % Path planning
         public_vars.path = plan_path(read_only_vars, public_vars);
-
         % Motion planning
-        if(counter < 10)
-            public_vars.motion_vector = [0.2,0.2];
-            counter = counter +1;
-        else
-            public_vars = plan_motion(read_only_vars, public_vars);
-        end
+        public_vars = plan_motion(read_only_vars, public_vars);
+        
+    end
 
 end
 end

@@ -1,4 +1,4 @@
-function [particles] = update_particle_filter(read_only_vars, public_vars)
+function [particles,weights] = update_particle_filter(read_only_vars, public_vars)
 %UPDATE_PARTICLE_FILTER Summary of this function goes here
 
 particles = public_vars.particles;
@@ -21,14 +21,14 @@ particles = resample_particles(particles, weights);
 % IV. Add Random particles
 % Discard random ones and create new ones
 
-% part_to_be_replaced = 0.1;
-% particle_count = size(public_vars.particles,1);
-% replace_count = floor(part_to_be_replaced*particle_count);
-% to_be_replaced_indexes = randi([1 particle_count],1,replace_count);
-% 
-% helper = init_particle_filter(read_only_vars,public_vars,replace_count);
-% 
-% particles(to_be_replaced_indexes,:) = helper.particles;
+part_to_be_replaced = 0.25;
+particle_count = size(public_vars.particles,1);
+replace_count = floor(part_to_be_replaced*particle_count);
+to_be_replaced_indexes = randi([1 particle_count],1,replace_count);
+
+helper = init_particle_filter(read_only_vars,public_vars,replace_count);
+
+particles(to_be_replaced_indexes,:) = helper.particles;
 
 end
 

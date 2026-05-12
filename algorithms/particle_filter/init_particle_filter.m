@@ -21,7 +21,6 @@ random_vector(:,3) = random_vector(:,3)*2*pi();
 public_vars.particles = random_vector;
 else
 
-
 mu    = read_only_vars.est_position_history(end-5,:);       % [1x3]
 Sigma = public_vars.sigma;                    % [3x3]
 
