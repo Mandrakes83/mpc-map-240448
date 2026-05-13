@@ -86,9 +86,15 @@ switch Localization_state
     % =========================
     case KALMAN
     % =========================
+        persistent stabilization_counter;
+        if(isempty(stabilization_counter))
+            stabilization_counter = 0;
+        end
+
         if any(isnan(read_only_vars.gnss_position))
             Localization_state = PF_BOOT;
             public_vars.kf_enabled = 0;
+            stabilization_counter = [];
             return;
         end
 
@@ -101,10 +107,13 @@ switch Localization_state
 
         % Path planning
         public_vars.path = plan_path(read_only_vars, public_vars);
-
+        if(stabilization_counter < 20)
+            stabilization_counter = stabilization_counter + 1;
+            public_vars.motion_vector = [0,0];
+        else
         % Motion planning
-        public_vars = plan_motion(read_only_vars, public_vars);
-
+            public_vars = plan_motion(read_only_vars, public_vars);
+        end
         
 
 
@@ -128,7 +137,7 @@ switch Localization_state
         quit_counter = 0;
     end
 
-    if(quit_counter > 30)
+    if(quit_counter > 50)
         Localization_state = KALMAN_BOOT;
         public_vars.pf_enabled = 0;
         init_counter = [];
