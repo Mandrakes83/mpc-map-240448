@@ -107,7 +107,7 @@ switch Localization_state
 
         % Path planning
         public_vars.path = plan_path(read_only_vars, public_vars);
-        if(stabilization_counter < 20)
+        if(stabilization_counter < 30)
             stabilization_counter = stabilization_counter + 1;
             public_vars.motion_vector = [0,0];
         else
