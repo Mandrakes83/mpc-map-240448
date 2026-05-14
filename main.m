@@ -1,8 +1,5 @@
 close all;
-clear all;
 clc;
-
-warning('off','MATLAB:colon:operandsNotRealScalar');
 
 disp('Welcome to MPC-MAP Project, GLHF!')
 

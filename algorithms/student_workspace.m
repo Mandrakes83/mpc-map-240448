@@ -1,7 +1,22 @@
 function [public_vars] = student_workspace(read_only_vars,public_vars)
 %STUDENT_WORKSPACE Summary of this function goes here
-
 persistent Localization_state;
+persistent kalman_transfer;
+persistent stabilization_counter;
+persistent init_counter;
+persistent quit_counter;
+
+
+if(read_only_vars.counter == 1)
+    clear functions;
+    Localization_state = [];
+    kalman_transfer = [];
+    stabilization_counter = [];
+    init_counter = [];
+    quit_counter = [];
+end
+
+
 Init_cycle_count = 30;
 
 persistent Init_stop;
@@ -25,7 +40,7 @@ switch Localization_state
     % =========================
     case KALMAN_BOOT
     % =========================
-    persistent kalman_transfer;
+    
     if(isempty(kalman_transfer))
         kalman_transfer = 0;
     end
@@ -86,7 +101,7 @@ switch Localization_state
     % =========================
     case KALMAN
     % =========================
-        persistent stabilization_counter;
+        
         if(isempty(stabilization_counter))
             stabilization_counter = 0;
         end
@@ -120,12 +135,12 @@ switch Localization_state
     % =========================
     case PF
     % =========================
-    persistent init_counter;
+    
     if(isempty(init_counter))
         init_counter = 0;
     end
 
-    persistent quit_counter;
+    
     if(isempty(quit_counter))
         quit_counter = 0;
     end    
